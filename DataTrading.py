@@ -28,7 +28,6 @@ def getData(crypto, interval, y, mes, dia):
     dataTrading = df
     return dataTrading
 
-
 def getUSD():  
     d = pd.to_datetime('today').strftime('%d-%m-%Y')
     url = f'https://mindicador.cl/api/dolar/{d}'
@@ -37,4 +36,25 @@ def getUSD():
     # Para que el json se vea ordenado, retornar pretty_json
     pretty_json = json.dumps(data, indent=2)
     return data
+
+
+def getCurrency(crypto):   
+    print(crypto)
+    endpoint_url = 'https://ftx.com/api/markets'
+
+    # Get all market data as JSON
+    all_markets = requests.get(endpoint_url).json()
+
+    # Convert JSON to Pandas DataFrame
+    df = pd.DataFrame(all_markets['result'])
+    df.set_index('name', inplace = True)
+    base_currency = crypto
+    quote_currency = 'USD'
+
+    # Specify the base and quote currencies to get single market data
+    request_url = f'{endpoint_url}/{base_currency}/{quote_currency}'
+
+    df = pd.DataFrame(requests.get(request_url).json())
+    precio=df['result']['price']
+    return precio
 

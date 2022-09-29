@@ -67,8 +67,18 @@ dolarObservado = pd.DataFrame(dolarData['serie'])
 dolarObservado = dolarObservado['valor']
 print(dolarObservado.to_string(index=False))
 
+### Data
+crypto = getData(add_selectbox, str(interval), y, mes, dia)
+crypto['average_high'] = crypto['high'].rolling(5).mean()
+crypto['average_low'] = crypto['low'].rolling(5).mean()
+crypto['global mean'] = crypto[['open', 'high', 'low', 'close']].mean(axis=1)
+
+### Variance
+
+variance = round(crypto['global mean'].var(), 2)
+
 # create three columns
-kpi1, kpi2, kpi3 = st.columns(3)
+kpi1, kpi2, kpi3, kpi4 = st.columns(4)
 
 # fill in those three columns with respective metrics or KPIs
 kpi1.metric(
@@ -82,14 +92,14 @@ kpi2.metric(
 )
 
 kpi3.metric(
-    label="USD a CLP Observado",
-    value=dolarObservado.to_string(index=False)
+    label="1 USD",
+    value=(dolarObservado.to_string(index=False) + 'CLP hoy')
 )
 
-### Data
-crypto = getData(add_selectbox, str(interval), y, mes, dia)
-crypto['average_high'] = crypto['high'].rolling(5).mean()
-crypto['average_low'] = crypto['low'].rolling(5).mean()
+kpi4.metric(
+    label="Varianza del periodo",
+    value=str(variance) + 'USD'
+)
 
 
 
@@ -97,7 +107,7 @@ crypto['average_low'] = crypto['low'].rolling(5).mean()
 #fig = px.Figure()
 titulo_sub = ("Variación " + add_selectbox)
 fig = make_subplots(rows=2, cols=1, shared_xaxes=True, 
-               vertical_spacing=0.03, subplot_titles=(add_selectbox, 'Volume'), 
+               vertical_spacing=0.08, subplot_titles=(add_selectbox, 'Volume'), 
                row_width=[0.4, 1.2])
 
 fig.add_trace(px.Candlestick(x=crypto["date"], open=crypto["open"], high=crypto["high"],
@@ -115,6 +125,18 @@ fig.add_trace(px.Bar(x=crypto['date'], y=crypto['volume'], showlegend=False), ro
 fig.update(layout_xaxis_rangeslider_visible=False)
 fig
 
+### calculadora de USD to Crypto
+calculator1 = st.number_input('Inserta USD')
+if st.button('Calcular USD'):
+    precio1 = getCurrency(add_selectbox)
+    conversion1 = calculator1/precio1
+    st.write('Equivale a: ' + str(conversion1) + " " + str(add_selectbox))
+    
+calculator2 = st.number_input('Inserta ' + str(add_selectbox))
+if st.button('Calcular Crypto'):
+    precio2 = getCurrency(add_selectbox)
+    conversion2 = calculator2*precio2
+    st.write('Equivale a: ' + str(conversion2) + " " + "USD")
 
 
 ### Tabla datos
