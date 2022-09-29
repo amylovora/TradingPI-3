@@ -1,23 +1,21 @@
-
 import os
 import streamlit as st
 from datetime import datetime, timedelta
 import numpy as np
 import pandas as pd
-import cufflinks as cf
 import plotly.graph_objects as px
 from plotly.subplots import make_subplots
+import statistics
 import time
 
 from DataTrading import *
 
 st.set_page_config(
-    page_title="PI-3 CryptoCoin Easy",
-    page_icon="✅",
+    page_title="CryptoInfo PI-3",
     layout="wide",
 )
 
-st.title("CryptoCoin Info")
+st.title("CryptoInfo")
 
 ### Seleccion crypto:
 add_selectbox = st.selectbox(
@@ -25,7 +23,20 @@ add_selectbox = st.selectbox(
     ('BTC', 'ETH', 'BNB', 'XRP', 'DOGE', 'SHIB', 'ATOM', 'LUNC', 'FTT', 'SOL')
 )
 
+st.sidebar.title('Intervalo de tiempo')
 
+### Calendario
+yesterday = datetime.now() - timedelta(1)
+
+
+d = st.sidebar.date_input(
+    "Fecha inicio",
+    yesterday)
+
+fecha = datetime.strptime(str(d), '%Y-%m-%d')
+y = fecha.year
+dia = fecha.day
+mes = fecha.month
 ### Seleccion intervalo tiempo:
 
 add_selecttime = st.sidebar.selectbox(
@@ -48,17 +59,7 @@ elif add_selecttime == '1 semana':
 elif add_selecttime == '1 mes':
     interval = 60*60*24*30
 
-### Calendario
-yesterday = datetime.now() - timedelta(1)
 
-d = st.sidebar.date_input(
-    "Fecha inicio",
-    yesterday)
-
-fecha = datetime.strptime(str(d), '%Y-%m-%d')
-y = fecha.year
-dia = fecha.day
-mes = fecha.month
 
 ### USD Observado hoy
 
@@ -75,40 +76,34 @@ crypto['global mean'] = crypto[['open', 'high', 'low', 'close']].mean(axis=1)
 
 ### Variance
 
-variance = round(crypto['global mean'].var(), 2)
+variance = round(statistics.variance(crypto['global mean']*1), 2)
 
-# create three columns
-kpi1, kpi2, kpi3, kpi4 = st.columns(4)
+# Crear tres columnas
+kpi1, kpi2, kpi3= st.columns(3)
 
-# fill in those three columns with respective metrics or KPIs
+# Agregar métricas en cada una de las columnas
 kpi1.metric(
     label="Fecha de hoy",
     value=str(datetime.utcnow().date())
 )
 
 kpi2.metric(
-    label="Cypto a USD",
-    value=str(datetime.utcnow().date())
-)
-
-kpi3.metric(
     label="1 USD",
     value=(dolarObservado.to_string(index=False) + 'CLP hoy')
 )
 
-kpi4.metric(
+kpi3.metric(
     label="Varianza del periodo",
     value=str(variance) + 'USD'
 )
-
 
 
 ### Plot: variabilidad cripto y volumen
 #fig = px.Figure()
 titulo_sub = ("Variación " + add_selectbox)
 fig = make_subplots(rows=2, cols=1, shared_xaxes=True, 
-               vertical_spacing=0.08, subplot_titles=(add_selectbox, 'Volume'), 
-               row_width=[0.4, 1.2])
+            vertical_spacing=0.08, subplot_titles=(add_selectbox, 'Volume'), 
+            row_width=[0.4, 1.2])
 
 fig.add_trace(px.Candlestick(x=crypto["date"], open=crypto["open"], high=crypto["high"],
                 low=crypto["low"], close=crypto["close"], name=titulo_sub),
@@ -125,19 +120,24 @@ fig.add_trace(px.Bar(x=crypto['date'], y=crypto['volume'], showlegend=False), ro
 fig.update(layout_xaxis_rangeslider_visible=False)
 fig
 
+
+### Tabla
+tabla_view = crypto[['open', 'high', 'low', 'close', 'volume', 'date']]
+st.dataframe(tabla_view.style.highlight_max(axis=0))
+
 ### calculadora de USD to Crypto
-calculator1 = st.number_input('Inserta USD')
-if st.button('Calcular USD'):
+
+st.sidebar.title('Calculadora USD - ' + str(add_selectbox))
+
+calculator1 = st.sidebar.number_input('Inserta USD')
+if st.sidebar.button('Calcular USD'):
     precio1 = getCurrency(add_selectbox)
     conversion1 = calculator1/precio1
     st.write('Equivale a: ' + str(conversion1) + " " + str(add_selectbox))
     
-calculator2 = st.number_input('Inserta ' + str(add_selectbox))
-if st.button('Calcular Crypto'):
+    
+calculator2 = st.sidebar.number_input('Inserta ' + str(add_selectbox))
+if st.sidebar.button('Calcular Crypto'):
     precio2 = getCurrency(add_selectbox)
     conversion2 = calculator2*precio2
     st.write('Equivale a: ' + str(conversion2) + " " + "USD")
-
-
-### Tabla datos
-st.dataframe(crypto.style.highlight_max(axis=0))

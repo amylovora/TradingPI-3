@@ -43,7 +43,3 @@ La entrega se hará a través de un form que estará disponible hasta el *JUEVES
 * Repositorio oficial: https://github.com/ccxt/ccxt
 * Ejemplo de dashboard FTX: https://ftx.com/trade/DASH-PERP
 
-
-### ¡Mucha Suerte!  
-
-<img src = "https://user-images.githubusercontent.com/96025598/188937586-28575753-fbd6-42de-beca-81ae35b659e0.gif" height = 300>
